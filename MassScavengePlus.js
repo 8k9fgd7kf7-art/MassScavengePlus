@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mass Scavenge+ V2
 // @namespace    malte.massscavengeplus
-// @version      2.9.5-beta
+// @version      2.9.6-beta
 // @description  Modernisierte Massen-Sammelhilfe für Die Stämme
 // @author       Malte / OpenAI
 // @match        https://*.die-staemme.de/game.php*
@@ -11,7 +11,7 @@
 // ==/UserScript==
 
 /*
- * Mass Scavenge+ v2.9.5-beta
+ * Mass Scavenge+ v2.9.6-beta
  * Modernisierte Fassung auf Basis von "Mass scavenging by Sophie / Shinko to Kuma".
  *
  * Ziele dieser V2:
@@ -32,7 +32,7 @@
         id: 'massScavengePlusV2',
         styleId: 'massScavengePlusV2Style',
         modalId: 'massScavengePlusV2Modal',
-        version: '2.9.5-beta',
+        version: '2.9.6-beta',
         storageKey: 'massScavengePlusV2.config',
         villageTypeStorageKey: 'massScavengePlusV2.villageTypes',
         sessionStorageKey: 'massScavengePlusV2.sessions',
@@ -1220,6 +1220,22 @@
     #${APP.id} .msp-detail-grid { grid-template-columns:1fr; }
     #${APP.id} .msp-unit-card { width: calc(50% - 4px); }
 }
+
+/* v2.9.6 – letzter Mobile-Override: Infoleiste soll NORMAL mitscrollen */
+@media (max-width:760px), (pointer:coarse) {
+    #${APP.id} .msp-top-status,
+    #${APP.id} #mspTopStatus {
+        position: static !important;
+        top: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: auto !important;
+        z-index: auto !important;
+        transform: none !important;
+        inset: auto !important;
+    }
+}
+
 `;
 
         $('<style>', { id: APP.styleId }).text(css).appendTo(document.head);
@@ -2640,6 +2656,21 @@
         return 118;
     }
 
+    function releaseMobileStatusBar() {
+        if (!isMobileLayout()) return;
+        const bar = document.getElementById('mspTopStatus');
+        if (!bar) return;
+
+        bar.style.removeProperty('position');
+        bar.style.removeProperty('top');
+        bar.style.removeProperty('bottom');
+        bar.style.removeProperty('left');
+        bar.style.removeProperty('right');
+        bar.style.removeProperty('z-index');
+        bar.style.removeProperty('transform');
+        bar.style.removeProperty('inset');
+    }
+
     function applyMobileWindowLayout() {
         const app = document.getElementById(APP.id);
         if (!app) return;
@@ -2659,6 +2690,7 @@
         }
 
         app.style.bottom = 'auto';
+        releaseMobileStatusBar();
     }
 
     function bindMobileDrag() {
