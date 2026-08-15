@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mass Scavenge+ V2
 // @namespace    malte.massscavengeplus
-// @version      2.9.4-beta
+// @version      2.9.5-beta
 // @description  Modernisierte Massen-Sammelhilfe für Die Stämme
 // @author       Malte / OpenAI
 // @match        https://*.die-staemme.de/game.php*
@@ -11,7 +11,7 @@
 // ==/UserScript==
 
 /*
- * Mass Scavenge+ v2.9.4-beta
+ * Mass Scavenge+ v2.9.5-beta
  * Modernisierte Fassung auf Basis von "Mass scavenging by Sophie / Shinko to Kuma".
  *
  * Ziele dieser V2:
@@ -32,7 +32,7 @@
         id: 'massScavengePlusV2',
         styleId: 'massScavengePlusV2Style',
         modalId: 'massScavengePlusV2Modal',
-        version: '2.9.4-beta',
+        version: '2.9.5-beta',
         storageKey: 'massScavengePlusV2.config',
         villageTypeStorageKey: 'massScavengePlusV2.villageTypes',
         sessionStorageKey: 'massScavengePlusV2.sessions',
@@ -524,7 +524,7 @@
 #${APP.id} .msp-warning { margin-top: 8px; padding: 7px 9px; border: 1px solid #b86f16; border-radius: 5px; background: #ffe4b3; color: #6d3a00; }
 #${APP.id} .msp-hidden { display: none !important; }
 #${APP.modalId} {
-    position: fixed; z-index: 10000; inset: 0; display: flex; align-items: center; justify-content: center;
+    position: fixed; z-index: 100005; inset: 0; display: flex; align-items: center; justify-content: center;
     background: rgba(0,0,0,.48); padding: 20px;
 }
 #${APP.modalId} .msp-modal-box { width: min(620px, 100%); max-height: 86vh; overflow: auto; background: #fff5da; border: 2px solid #7d510f; border-radius: 8px; box-shadow: 0 15px 40px rgba(0,0,0,.45); }
@@ -888,6 +888,62 @@
 /* v2.9.4 Mobile Layout */
 @media (max-width: 760px), (pointer: coarse) {
     #${APP.id} {
+
+    /* Statusleiste scrollt auf dem Handy normal mit dem Inhalt mit. */
+    #${APP.id} .msp-top-status {
+        position: static !important;
+        top: auto !important;
+        z-index: auto !important;
+    }
+
+    /* Allgemeines Zahnrad: Modal sicher über dem Script und im Viewport. */
+    #${APP.modalId} {
+        z-index: 100005 !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        padding: 10px 6px !important;
+        box-sizing: border-box !important;
+        overflow: auto !important;
+    }
+
+    #${APP.modalId} .msp-modal-box {
+        width: calc(100vw - 12px) !important;
+        max-width: none !important;
+        max-height: calc(100dvh - 20px) !important;
+        overflow: auto !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    #${APP.modalId} .msp-modal-head {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 2 !important;
+    }
+
+    #${APP.modalId} .msp-modal-body {
+        padding: 10px !important;
+    }
+
+    #${APP.modalId} textarea {
+        min-height: 150px !important;
+        max-height: 38dvh !important;
+        font-size: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    #${APP.modalId} .msp-modal-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 7px !important;
+    }
+
+    #${APP.modalId} .msp-modal-actions button {
+        width: 100% !important;
+        min-height: 38px !important;
+    }
+
+
         position: fixed !important;
         left: 6px !important;
         right: 6px !important;
@@ -1993,7 +2049,6 @@
         <div class="msp-modal-head"><span>Mass Scavenge+ Einstellungen</span><button class="msp-btn msp-btn-danger msp-btn-icon" id="mspModalClose">✕</button></div>
         <div class="msp-modal-body">
             <label style="display:block;margin-bottom:8px;"><input type="checkbox" id="mspRememberPosition" ${config.ui.rememberPosition ? 'checked' : ''}> Fensterposition merken</label>
-            <label style="display:block;margin-bottom:12px;"><input type="checkbox" id="mspCompactSetting" ${config.ui.compact ? 'checked' : ''}> Kompakte Darstellung verwenden</label>
             <div style="font-weight:bold;margin-bottom:5px;">Konfiguration exportieren / importieren</div>
             <textarea id="mspConfigText">${escapeHtml(exportText)}</textarea>
             <div class="msp-modal-actions">
@@ -2002,23 +2057,19 @@
                 <button class="msp-btn msp-btn-danger" id="mspResetAll">Alles zurücksetzen</button>
             </div>
             <div style="font-size:11px;opacity:.75;margin-top:10px;">Alte Sophie-Einstellungen werden bei der ersten Nutzung automatisch übernommen, sofern noch keine V2-Konfiguration existiert.</div>
-            <button class="msp-scroll-top" id="mspScrollTop" type="button" title="Nach oben">↑</button>
-        
-        </div>
+</div>
     </div>
 </div>`);
 
         $('body').append(modal);
 
-        $('#mspModalClose').on('click', () => modal.remove());
-        modal.on('click', e => { if (e.target === modal[0]) modal.remove(); });
-        $(document).one('keydown.mspModal', e => { if (e.key === 'Escape') modal.remove(); });
-
-        $('#mspCompactSetting').on('change', function () {
-            config.ui.compact = this.checked;
-            saveConfig();
-            $(`#${APP.id}`).toggleClass('msp-compact', config.ui.compact);
-        });
+        const closeSettingsModal = () => {
+            $(document).off('keydown.mspModal');
+            modal.remove();
+        };
+        $('#mspModalClose').on('click', closeSettingsModal);
+        modal.on('click', e => { if (e.target === modal[0]) closeSettingsModal(); });
+        $(document).on('keydown.mspModal', e => { if (e.key === 'Escape') closeSettingsModal(); });
 
         $('#mspRememberPosition').on('change', function () {
             config.ui.rememberPosition = this.checked;
