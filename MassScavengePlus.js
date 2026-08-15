@@ -1,32 +1,17 @@
-(function(){
-'use strict';
+// ==UserScript==
+// @name         Mass Scavenge+ V2
+// @namespace    malte.massscavengeplus
+// @version      2.9.4-beta
+// @description  Modernisierte Massen-Sammelhilfe für Die Stämme
+// @author       Malte / OpenAI
+// @match        https://*.die-staemme.de/game.php*
+// @match        http://*.die-staemme.de/game.php*
+// @run-at       document-idle
+// @grant        none
+// ==/UserScript==
 
-    const __mspUrl = new URL(window.location.href);
-    const __mspIsMassScavenge =
-        __mspUrl.searchParams.get('screen') === 'place' &&
-        __mspUrl.searchParams.get('mode') === 'scavenge_mass';
-
-    if (!__mspIsMassScavenge) {
-        return;
-    }
-
-
-    if (window.__MASS_SCAVENGE_PLUS_RUNNING__) {
-        try {
-            const existing = document.getElementById('mass-scavenge-plus');
-            if (existing) existing.scrollIntoView({ block: 'nearest' });
-        } catch {}
-        return;
-    }
-    window.__MASS_SCAVENGE_PLUS_RUNNING__ = true;
-
-
-/* =========================================================
-   Mass Scavenge+ v2.9.3
-   GitHub / Schnellleisten Build
-   ========================================================= */
 /*
- * Mass Scavenge+ v2.9.3-beta
+ * Mass Scavenge+ v2.9.4-beta
  * Modernisierte Fassung auf Basis von "Mass scavenging by Sophie / Shinko to Kuma".
  *
  * Ziele dieser V2:
@@ -47,7 +32,7 @@
         id: 'massScavengePlusV2',
         styleId: 'massScavengePlusV2Style',
         modalId: 'massScavengePlusV2Modal',
-        version: '2.9.3-beta',
+        version: '2.9.4-beta',
         storageKey: 'massScavengePlusV2.config',
         villageTypeStorageKey: 'massScavengePlusV2.villageTypes',
         sessionStorageKey: 'massScavengePlusV2.sessions',
@@ -899,6 +884,223 @@
     box-shadow:inset 0 0 0 1px rgba(214,40,40,.08);
 }
 #${APP.id} .msp-smart-warning strong { color:#a71919; }
+
+/* v2.9.4 Mobile Layout */
+@media (max-width: 760px), (pointer: coarse) {
+    #${APP.id} {
+        position: fixed !important;
+        left: 6px !important;
+        right: 6px !important;
+        top: 118px !important;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        transform: none !important;
+        margin: 0 !important;
+        max-height: calc(100dvh - 118px - 86px) !important;
+        z-index: 99999 !important;
+        box-sizing: border-box !important;
+    }
+
+    #${APP.id} .msp-header {
+        cursor: grab;
+        touch-action: none;
+        padding: 9px 10px !important;
+    }
+
+    #${APP.id}.msp-mobile-dragging .msp-header {
+        cursor: grabbing;
+    }
+
+    #${APP.id} .msp-title {
+        font-size: 18px !important;
+        white-space: nowrap;
+    }
+
+    #${APP.id} .msp-version {
+        font-size: 10px !important;
+    }
+
+    #${APP.id} .msp-body {
+        max-height: calc(100dvh - 118px - 86px - 52px) !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        padding: 7px !important;
+        box-sizing: border-box !important;
+    }
+
+    #${APP.id} .msp-top-status {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        gap: 4px !important;
+        padding: 5px !important;
+    }
+
+    #${APP.id} .msp-top-status .msp-status-pill {
+        font-size: 10px !important;
+        padding: 3px 6px !important;
+    }
+
+    #${APP.id} .msp-panel {
+        margin-bottom: 6px !important;
+    }
+
+    #${APP.id} .msp-panel-title {
+        padding: 7px 8px !important;
+        font-size: 12px !important;
+    }
+
+    #${APP.id} .msp-panel-content {
+        padding: 8px !important;
+    }
+
+    /* Verteilung: nebeneinander, solange der Platz reicht */
+    #${APP.id} #mspDistributionPanel .msp-priority {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+    }
+
+    #${APP.id} #mspDistributionPanel .msp-priority label {
+        padding: 8px !important;
+        font-size: 11px !important;
+    }
+
+    /* Zeitbereich mobil */
+    #${APP.id} .msp-time-mode-row {
+        gap: 14px !important;
+        margin-bottom: 7px !important;
+        font-size: 11px !important;
+    }
+
+    #${APP.id} .msp-time-compact {
+        grid-template-columns: 1fr !important;
+        gap: 7px !important;
+        align-items: stretch !important;
+    }
+
+    #${APP.id} .msp-time-side {
+        gap: 4px !important;
+    }
+
+    #${APP.id} .msp-time-side-title {
+        text-align: left !important;
+        font-size: 12px !important;
+    }
+
+    #${APP.id} .msp-time-inputs {
+        justify-content: flex-start !important;
+        flex-wrap: wrap;
+    }
+
+    #${APP.id} .msp-time-inputs input[type="date"] {
+        width: 145px !important;
+        max-width: 56vw !important;
+    }
+
+    #${APP.id} .msp-time-inputs input[type="time"] {
+        width: 88px !important;
+    }
+
+    #${APP.id} .msp-time-copy-center {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+        padding: 0 !important;
+        order: 3;
+    }
+
+    #${APP.id} .msp-quick-v28 {
+        gap: 5px !important;
+        align-items: center !important;
+        margin-top: 8px !important;
+    }
+
+    #${APP.id} #mspQuickButtons {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 5px !important;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    #${APP.id} .msp-quick-preset {
+        flex: 0 1 auto !important;
+        min-width: 56px !important;
+        max-width: 145px !important;
+        white-space: normal !important;
+        line-height: 1.15 !important;
+        padding: 7px 9px !important;
+    }
+
+    #${APP.id} #mspQuickSettingsBtn {
+        flex: 0 0 auto !important;
+    }
+
+    /* Dorfwahl mobil */
+    #${APP.id} .msp-village-toolbar {
+        gap: 5px !important;
+    }
+
+    #${APP.id} .msp-village-search {
+        min-width: 0 !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    #${APP.id} .msp-village-row {
+        grid-template-columns: 24px minmax(125px,1fr) 72px 68px !important;
+        gap: 4px !important;
+    }
+
+    #${APP.id} .msp-village-row .msp-village-manual,
+    #${APP.id} .msp-village-row > span:nth-last-child(1) {
+        grid-column: 2 / -1;
+    }
+
+    /* Analyse enger */
+    #${APP.id} .msp-analysis-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    }
+
+    #${APP.id} #mspCalculatePanel {
+        position: sticky !important;
+        bottom: 0 !important;
+        z-index: 20 !important;
+    }
+
+    #${APP.id} #mspCalculateBtn {
+        min-height: 42px !important;
+        font-size: 13px !important;
+    }
+
+    #${APP.id} .msp-scroll-top {
+        display: none !important;
+    }
+
+    .msp-quick-modal-overlay {
+        align-items: flex-start !important;
+        padding: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    .msp-quick-modal-overlay .msp-modal-box {
+        width: 100% !important;
+        max-height: calc(100dvh - 20px) !important;
+    }
+}
+
+@media (max-width: 460px) {
+    #${APP.id} #mspDistributionPanel .msp-priority {
+        grid-template-columns: 1fr !important;
+    }
+
+    #${APP.id} .msp-top-status .msp-status-pill {
+        flex: 1 1 auto;
+    }
+}
+
 #${APP.id} .msp-smart-warning .msp-smart-warning-text { flex:1; min-width:220px; }
 #${APP.id} .msp-smart-warning.msp-smart-ok {
     border-color:#7d9d5a;
@@ -1310,7 +1512,7 @@
         bindEvents();
         updateHeaderSummary();
 
-        if ($.fn.draggable && !/iphone|android|blackberry/i.test(navigator.userAgent)) {
+        if ($.fn.draggable && !isMobileLayout()) {
             root.draggable({
                 handle: '.msp-header',
                 containment: 'window',
@@ -1326,6 +1528,16 @@
     }
 
     function applyStoredPosition() {
+        if (isMobileLayout()) {
+            const top = Number.isFinite(config.ui.top)
+                ? Math.max(mobileTopBoundary(), config.ui.top)
+                : mobileTopBoundary();
+            $(`#${APP.id}`)
+                .addClass('msp-positioned')
+                .css({ left: '6px', right: '6px', width: 'auto', top: `${top}px`, bottom: 'auto', transform: 'none' });
+            return;
+        }
+
         if (!config.ui.rememberPosition) return;
         if (Number.isFinite(config.ui.left) && Number.isFinite(config.ui.top)) {
             $(`#${APP.id}`)
@@ -2368,24 +2580,133 @@
         app.style.transform = 'none';
     }
 
+    function isMobileLayout() {
+        return window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+    }
+
+    function mobileTopBoundary() {
+        // Genug Abstand unter der mobilen Stämme-Kopfzeile.
+        return 118;
+    }
+
+    function applyMobileWindowLayout() {
+        const app = document.getElementById(APP.id);
+        if (!app) return;
+
+        if (!isMobileLayout()) return;
+
+        app.style.left = '6px';
+        app.style.right = '6px';
+        app.style.width = 'auto';
+        app.style.maxWidth = 'none';
+        app.style.transform = 'none';
+
+        const currentTop = parseFloat(app.style.top);
+        const minTop = mobileTopBoundary();
+        if (!Number.isFinite(currentTop) || currentTop < minTop) {
+            app.style.top = `${minTop}px`;
+        }
+
+        app.style.bottom = 'auto';
+    }
+
+    function bindMobileDrag() {
+        const app = document.getElementById(APP.id);
+        const header = app?.querySelector('.msp-header');
+        if (!app || !header || !isMobileLayout()) return;
+        if (header.dataset.mspTouchDrag === '1') return;
+        header.dataset.mspTouchDrag = '1';
+
+        let dragging = false;
+        let pointerId = null;
+        let startY = 0;
+        let startTop = 0;
+
+        const endDrag = () => {
+            if (!dragging) return;
+            dragging = false;
+            pointerId = null;
+            app.classList.remove('msp-mobile-dragging');
+
+            const top = parseFloat(app.style.top);
+            if (Number.isFinite(top)) {
+                config.ui.top = top;
+                saveConfig();
+            }
+        };
+
+        header.addEventListener('pointerdown', event => {
+            if (!isMobileLayout()) return;
+            if (event.target.closest('button,input,select,a')) return;
+
+            dragging = true;
+            pointerId = event.pointerId;
+            startY = event.clientY;
+            startTop = app.getBoundingClientRect().top;
+            app.classList.add('msp-mobile-dragging');
+
+            try { header.setPointerCapture(pointerId); } catch {}
+            event.preventDefault();
+        }, { passive: false });
+
+        header.addEventListener('pointermove', event => {
+            if (!dragging || event.pointerId !== pointerId) return;
+
+            const deltaY = event.clientY - startY;
+            const minTop = mobileTopBoundary();
+            const maxTop = Math.max(minTop, window.innerHeight - 150);
+            const nextTop = Math.min(maxTop, Math.max(minTop, startTop + deltaY));
+
+            app.style.top = `${nextTop}px`;
+            app.style.bottom = 'auto';
+            event.preventDefault();
+        }, { passive: false });
+
+        header.addEventListener('pointerup', endDrag);
+        header.addEventListener('pointercancel', endDrag);
+        header.addEventListener('lostpointercapture', endDrag);
+    }
+
     function startSafePositionGuard() {
-        placeWindowDirectlyBelowHeader();
-        keepWindowBelowGameNavigation();
+        if (isMobileLayout()) {
+            applyMobileWindowLayout();
+            bindMobileDrag();
+        } else {
+            placeWindowDirectlyBelowHeader();
+            keepWindowBelowGameNavigation();
+        }
 
         let resizeTimer = null;
-        $(window).on('resize.mspSafePosition', function() {
+        $(window).on('resize.mspSafePosition orientationchange.mspSafePosition', function() {
             clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(keepWindowBelowGameNavigation, 80);
+            resizeTimer = setTimeout(() => {
+                if (isMobileLayout()) {
+                    applyMobileWindowLayout();
+                    bindMobileDrag();
+                } else {
+                    keepWindowBelowGameNavigation();
+                }
+            }, 80);
         });
 
         setTimeout(() => {
-            placeWindowDirectlyBelowHeader();
-            keepWindowBelowGameNavigation();
+            if (isMobileLayout()) {
+                applyMobileWindowLayout();
+                bindMobileDrag();
+            } else {
+                placeWindowDirectlyBelowHeader();
+                keepWindowBelowGameNavigation();
+            }
         }, 250);
 
         setTimeout(() => {
-            placeWindowDirectlyBelowHeader();
-            keepWindowBelowGameNavigation();
+            if (isMobileLayout()) {
+                applyMobileWindowLayout();
+                bindMobileDrag();
+            } else {
+                placeWindowDirectlyBelowHeader();
+                keepWindowBelowGameNavigation();
+            }
         }, 1000);
     }
 
@@ -2399,7 +2720,9 @@
         });
 
         $(document).on('mouseup.mspSafePosition touchend.mspSafePosition', function() {
-            window.setTimeout(keepWindowBelowGameNavigation, 0);
+            if (!isMobileLayout()) {
+                window.setTimeout(keepWindowBelowGameNavigation, 0);
+            }
         });
     }
 
@@ -3471,6 +3794,4 @@ ${warnings.map(text => `<div class="msp-warning">${escapeHtml(text)}</div>`).joi
     }
 
     init();
-})();
-
 })();
