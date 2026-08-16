@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mass Scavenge+ V2
 // @namespace    malte.massscavengeplus
-// @version      2.9.6-beta
+// @version      2.9.7-beta
 // @description  Modernisierte Massen-Sammelhilfe für Die Stämme
 // @author       Malte / OpenAI
 // @match        https://*.die-staemme.de/game.php*
@@ -11,7 +11,7 @@
 // ==/UserScript==
 
 /*
- * Mass Scavenge+ v2.9.6-beta
+ * Mass Scavenge+ v2.9.7-beta
  * Modernisierte Fassung auf Basis von "Mass scavenging by Sophie / Shinko to Kuma".
  *
  * Ziele dieser V2:
@@ -32,7 +32,7 @@
         id: 'massScavengePlusV2',
         styleId: 'massScavengePlusV2Style',
         modalId: 'massScavengePlusV2Modal',
-        version: '2.9.6-beta',
+        version: '2.9.7-beta',
         storageKey: 'massScavengePlusV2.config',
         villageTypeStorageKey: 'massScavengePlusV2.villageTypes',
         sessionStorageKey: 'massScavengePlusV2.sessions',
@@ -522,6 +522,97 @@
 #${APP.id} .msp-send-row.msp-sent { opacity: .68; background: #dbe8cf; }
 #${APP.id} .msp-send-row .msp-group-label { flex: 1; }
 #${APP.id} .msp-warning { margin-top: 8px; padding: 7px 9px; border: 1px solid #b86f16; border-radius: 5px; background: #ffe4b3; color: #6d3a00; }
+
+#${APP.id} .msp-preview-kpis {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+    margin:6px 0 7px;
+}
+#${APP.id} .msp-preview-kpi {
+    border:1px solid #c7aa70;
+    border-radius:5px;
+    background:#f9edcc;
+    padding:6px 7px;
+    text-align:center;
+    font-size:10px;
+}
+#${APP.id} .msp-preview-kpi b {
+    display:block;
+    font-size:15px;
+    color:#4b2d0b;
+}
+#${APP.id} .msp-preview-ok {
+    margin:6px 0;
+    padding:6px 8px;
+    border:1px solid #7f9e5b;
+    border-radius:5px;
+    background:#e6f0d8;
+    color:#35501f;
+    font-size:11px;
+}
+#${APP.id} .msp-preview-problem {
+    margin:6px 0;
+    padding:6px 8px;
+    border:1px solid #c58a2d;
+    border-radius:5px;
+    background:#fff0c5;
+    color:#6d4308;
+    font-size:11px;
+}
+#${APP.id} .msp-preview-details {
+    display:none;
+    margin-top:7px;
+    padding-top:7px;
+    border-top:1px solid #dcc69a;
+}
+#${APP.id} .msp-preview-details.msp-open {
+    display:block;
+}
+#${APP.id} .msp-preview-actions {
+    display:flex;
+    gap:6px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+#${APP.id} .msp-preview-return {
+    flex:1 1 auto;
+}
+#${APP.id} .msp-send-progress.msp-all-sent {
+    border-color:#789b57;
+    background:#dfeccd;
+    color:#35501f;
+}
+#${APP.id} .msp-send-row {
+    padding:6px 7px;
+}
+#${APP.id} .msp-send-row.msp-sent {
+    display:none;
+}
+#${APP.id} .msp-send-groups:empty {
+    display:none;
+}
+#${APP.id} .msp-category-summary {
+    margin:6px 0;
+}
+#${APP.id} .msp-category-pill {
+    padding:3px 7px;
+}
+@media (max-width:760px), (pointer:coarse) {
+    #${APP.id} .msp-preview-kpis {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    #${APP.id} .msp-preview-head {
+        align-items:stretch;
+    }
+    #${APP.id} .msp-preview-actions {
+        width:100%;
+    }
+    #${APP.id} .msp-preview-actions button {
+        flex:1 1 auto;
+    }
+}
+
 #${APP.id} .msp-hidden { display: none !important; }
 #${APP.modalId} {
     position: fixed; z-index: 100005; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -3758,71 +3849,156 @@
     }
 
     function updateSendProgress() {
-        const total = squadGroups.length;
-        const sent = $('#mspPreviewContent .msp-send-row.msp-sent').length;
-        $('#mspSendProgress').text(`${sent} von ${total} Versandgruppen gesendet`);
+        const totalGroups = squadGroups.length;
+        const sentRows = $('#mspPreviewContent .msp-send-row.msp-sent');
+        const sentGroups = sentRows.length;
+
+        let sentRequests = 0;
+        sentRows.each((_, el) => {
+            const index = Number($(el).data('group'));
+            if (Number.isInteger(index) && Array.isArray(squadGroups[index])) {
+                sentRequests += squadGroups[index].length;
+            }
+        });
+
+        const totalRequests = squadGroups.reduce((sum, group) => sum + (Array.isArray(group) ? group.length : 0), 0);
+        const progress = $('#mspSendProgress');
+
+        if (totalGroups > 0 && sentGroups === totalGroups) {
+            progress
+                .addClass('msp-all-sent')
+                .html(`✓ <b>${sentGroups}/${totalGroups}</b> Versandgruppen gesendet · <b>${formatNumber(sentRequests)}/${formatNumber(totalRequests)}</b> Sammelaufträge`);
+        } else {
+            progress
+                .removeClass('msp-all-sent')
+                .html(`<b>${sentGroups}/${totalGroups}</b> Versandgruppen gesendet · <b>${formatNumber(sentRequests)}/${formatNumber(totalRequests)}</b> Sammelaufträge`);
+        }
     }
 
     function renderPreview(preview) {
         const usedVillageCount = preview.villagesUsed.size;
+        const selectedVillageCount = preview.villagesSelected ?? preview.villagesLoaded;
         const activeUnits = config.unitOrder.filter(unit => (preview.unitTotals[unit] || 0) > 0);
-        const rows = activeUnits.map(unit => `
+        const totalSentUnits = Object.values(preview.unitTotals).reduce((sum, value) => sum + value, 0);
+
+        const returnOff = serverDateMs + preview.times.off * 3600000;
+        const returnDef = serverDateMs + preview.times.def * 3600000;
+        const returnOffText = formatServerDateTime(returnOff);
+        const returnDefText = formatServerDateTime(returnDef);
+        const sameReturn = Math.abs(returnOff - returnDef) < 60000;
+
+        const warnings = [];
+        if (!preview.requests) {
+            warnings.push('Es konnten keine sinnvollen Sammelaufträge erzeugt werden. Prüfe Laufzeit, Reserven und aktive Kategorien.');
+        }
+        if (preview.times.off > 24 || preview.times.def > 24) {
+            warnings.push('Mindestens eine berechnete Laufzeit liegt über 24 Stunden.');
+        }
+
+        const skippedNoTroops = safeInt(preview.skippedNoTroops, 0, 0);
+        const skippedNoSlot = safeInt(preview.skippedNoCategory, 0, 0) + safeInt(preview.skippedNoRally, 0, 0);
+        const hasPlanningProblem = skippedNoTroops > 0 || skippedNoSlot > 0;
+
+        const diagnosis = hasPlanningProblem
+            ? `<div class="msp-preview-problem">
+                ⚠ Nicht alle ausgewählten Dörfer konnten vollständig genutzt werden:
+                ${skippedNoTroops ? `<b>${formatNumber(skippedNoTroops)}</b> ohne nutzbare Truppen` : ''}
+                ${skippedNoTroops && skippedNoSlot ? ' · ' : ''}
+                ${skippedNoSlot ? `<b>${formatNumber(skippedNoSlot)}</b> ohne freie Kategorie / Versammlungsplatz` : ''}
+              </div>`
+            : `<div class="msp-preview-ok">✓ Alle <b>${formatNumber(usedVillageCount)}</b> genutzten Dörfer konnten ohne erkannte Einschränkung eingeplant werden.</div>`;
+
+        const categoryPills = preview.categoryTotals
+            .map((entry, index) => {
+                if (!entry.requests && !entry.units) return '';
+                return `<span class="msp-category-pill" style="${config.categories[index] ? '' : 'opacity:.5;'}"><b>${escapeHtml(categoryNames[index] || `Kategorie ${index + 1}`)}</b>: ${formatNumber(entry.requests)} Läufe · ${formatNumber(entry.units)} Einh.</span>`;
+            })
+            .join('');
+
+        const unitRows = activeUnits.map(unit => `
 <tr>
     <td><img src="${unitImage(unit)}" style="width:18px;height:18px;vertical-align:middle;margin-right:5px;">${escapeHtml(UNIT_META[unit]?.label || unit)}</td>
     <td>${formatNumber(preview.unitTotals[unit])}</td>
 </tr>`).join('');
 
+        const unitInline = activeUnits.length === 1
+            ? `<span class="msp-category-pill"><b>${escapeHtml(UNIT_META[activeUnits[0]]?.label || activeUnits[0])}</b>: ${formatNumber(preview.unitTotals[activeUnits[0]])}</span>`
+            : '';
+
         const groupRows = squadGroups.map((group, index) => {
             const stats = groupStats(group);
             return `
-<div class="msp-send-row" id="mspGroupRow-${index}">
-    <div class="msp-group-label"><b>Gruppe ${index + 1} von ${squadGroups.length}</b><br><small>${formatNumber(group.length)} Sammelaufträge</small>
+<div class="msp-send-row" id="mspGroupRow-${index}" data-group="${index}">
+    <div class="msp-group-label">
+        <b>Gruppe ${index + 1}/${squadGroups.length}</b> · ${formatNumber(group.length)} Aufträge
         <div class="msp-group-meta">${formatNumber(stats.villages)} Dörfer · ${formatNumber(stats.units)} Einheiten</div>
     </div>
     <button class="msp-btn msp-btn-success msp-send-normal" data-group="${index}">Senden</button>
-    ${window.premiumBtnEnabled === true ? `<button class="msp-btn msp-send-premium" data-group="${index}">Mit Premium</button>` : ''}
+    ${window.premiumBtnEnabled === true ? `<button class="msp-btn msp-send-premium" data-group="${index}">Premium</button>` : ''}
 </div>`;
         }).join('');
 
-        const totalSentUnits = Object.values(preview.unitTotals).reduce((sum, value) => sum + value, 0);
-        const returnOff = serverDateMs + preview.times.off * 3600000;
-        const returnDef = serverDateMs + preview.times.def * 3600000;
-        const warnings = [];
-        if (!preview.requests) warnings.push('Es konnten keine sinnvollen Sammelaufträge erzeugt werden. Prüfe Laufzeit, Reserven und aktive Kategorien.');
-        if (preview.times.off > 24 || preview.times.def > 24) warnings.push('Mindestens eine berechnete Laufzeit liegt über 24 Stunden.');
-
-        const categoryPills = preview.categoryTotals.map((entry, index) => `<span class="msp-category-pill" style="${config.categories[index] ? '' : 'opacity:.5;'}"><b>${escapeHtml(categoryNames[index] || `Kategorie ${index + 1}`)}</b>: ${formatNumber(entry.requests)} Läufe · ${formatNumber(entry.units)} Einh.</span>`).join('');
+        const returnText = sameReturn
+            ? `<b>Rückkehr ${returnOffText}</b>`
+            : `<b>Rückkehr</b> · Off <b>${returnOffText}</b> · Def <b>${returnDefText}</b>`;
 
         $('#mspPreviewContent').html(`
 <div class="msp-preview-head">
-    <div class="msp-preview-return"><b>Geplante Rückkehr</b> · Off <b>${formatServerDateTime(returnOff)}</b> · Def <b>${formatServerDateTime(returnDef)}</b></div>
-    <button class="msp-btn msp-btn-secondary" id="mspClosePreview" type="button">Vorschau schließen</button>
+    <div class="msp-preview-return">${returnText}</div>
+    <div class="msp-preview-actions">
+        <button class="msp-btn msp-btn-secondary" id="mspTogglePreviewDetails" type="button">Details</button>
+        <button class="msp-btn msp-btn-secondary" id="mspClosePreview" type="button">Schließen</button>
+    </div>
 </div>
-<div class="msp-summary-grid">
-    <div class="msp-stat"><b>${formatNumber(preview.villagesLoaded)}</b><span>Dörfer geladen</span></div>
-    <div class="msp-stat"><b>${formatNumber(preview.villagesSelected ?? preview.villagesLoaded)}</b><span>Dörfer ausgewählt</span></div>
-    <div class="msp-stat"><b>${formatNumber(usedVillageCount)}</b><span>Dörfer genutzt</span></div>
-    <div class="msp-stat"><b>${formatNumber(preview.requests)}</b><span>Sammelaufträge</span></div>
-    <div class="msp-stat"><b>${formatNumber(preview.groups)}</b><span>Versandgruppen</span></div>
+
+<div class="msp-preview-kpis">
+    <div class="msp-preview-kpi"><b>${formatNumber(usedVillageCount)}/${formatNumber(preview.villagesLoaded)}</b><span>Dörfer genutzt</span></div>
+    <div class="msp-preview-kpi"><b>${formatNumber(preview.requests)}</b><span>Sammelaufträge</span></div>
+    <div class="msp-preview-kpi"><b>${formatNumber(totalSentUnits)}</b><span>Einheiten</span></div>
+    <div class="msp-preview-kpi"><b>${formatNumber(preview.groups)}</b><span>Versandgruppen</span></div>
 </div>
-<div class="msp-detail-grid">
-    <div class="msp-detail-card"><b>${formatNumber(preview.villagesEligible)}</b>Dörfer mit Versammlungsplatz</div>
-    <div class="msp-detail-card"><b>${formatNumber(preview.skippedNoTroops)}</b>ohne nutzbare Truppen</div>
-    <div class="msp-detail-card"><b>${formatNumber(preview.skippedNoCategory + preview.skippedNoRally)}</b>ohne freie Kategorie / Platz</div>
-</div>
-<div style="font-size:12px;margin-bottom:5px;">Gewünschte Laufzeit: <b>Off ${formatDuration(preview.times.off * 3600)}</b> · <b>Def ${formatDuration(preview.times.def * 3600)}</b> · Insgesamt eingeplant: <b>${formatNumber(totalSentUnits)} Einheiten</b></div>
-<div class="msp-category-summary">${categoryPills}</div>
-${rows ? `<table class="msp-unit-summary"><thead><tr><th>Einheit</th><th>Eingeplant</th></tr></thead><tbody>${rows}</tbody></table>` : ''}
+
+${diagnosis}
+
+<div class="msp-category-summary">${categoryPills}${unitInline}</div>
+
 ${warnings.map(text => `<div class="msp-warning">${escapeHtml(text)}</div>`).join('')}
-<div class="msp-send-progress" id="mspSendProgress">0 von ${preview.groups} Versandgruppen gesendet</div>
+
+<div class="msp-preview-details" id="mspPreviewDetails">
+    <div class="msp-detail-grid">
+        <div class="msp-detail-card"><b>${formatNumber(preview.villagesLoaded)}</b>Dörfer geladen</div>
+        <div class="msp-detail-card"><b>${formatNumber(selectedVillageCount)}</b>Dörfer ausgewählt</div>
+        <div class="msp-detail-card"><b>${formatNumber(preview.villagesEligible)}</b>mit Versammlungsplatz</div>
+    </div>
+    <div style="font-size:11px;margin:5px 0;">
+        Gewünschte Laufzeit: <b>Off ${formatDuration(preview.times.off * 3600)}</b> ·
+        <b>Def ${formatDuration(preview.times.def * 3600)}</b>
+    </div>
+    ${unitRows ? `<table class="msp-unit-summary"><thead><tr><th>Einheit</th><th>Eingeplant</th></tr></thead><tbody>${unitRows}</tbody></table>` : ''}
+</div>
+
+<div class="msp-send-progress" id="mspSendProgress">0/${preview.groups} Versandgruppen gesendet · 0/${formatNumber(preview.requests)} Sammelaufträge</div>
 <div class="msp-send-groups">${groupRows || '<div class="msp-warning">Keine Versandgruppe vorhanden.</div>'}</div>
 `);
 
         $('#mspPreviewPanel').show();
         $('#mspPreviewPanel')[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
         $('#mspClosePreview').on('click', () => $('#mspPreviewPanel').hide());
-        $('.msp-send-normal').on('click', function () { sendGroup(Number($(this).data('group')), false); });
-        $('.msp-send-premium').on('click', function () { sendGroup(Number($(this).data('group')), true); });
+        $('#mspTogglePreviewDetails').on('click', function () {
+            const details = $('#mspPreviewDetails');
+            const open = !details.hasClass('msp-open');
+            details.toggleClass('msp-open', open);
+            $(this).text(open ? 'Details schließen' : 'Details');
+        });
+
+        $('.msp-send-normal').on('click', function () {
+            sendGroup(Number($(this).data('group')), false);
+        });
+        $('.msp-send-premium').on('click', function () {
+            sendGroup(Number($(this).data('group')), true);
+        });
+
         updateSendProgress();
     }
 
@@ -3847,7 +4023,6 @@ ${warnings.map(text => `<div class="msp-warning">${escapeHtml(text)}</div>`).joi
             { squad_requests: group },
             () => {
                 row.addClass('msp-sent');
-                row.find('.msp-group-label').append('<br><small>✓ gesendet</small>');
                 row.find('button').remove();
                 updateSendProgress();
                 recordSentGroup(groupIndex, group);
